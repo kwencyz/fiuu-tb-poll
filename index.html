@@ -492,15 +492,10 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
           <p id="sheet-where"></p>
         </div>
       </div>
-      <div id="sheet-tags"></div>
       <div class="cols">
         <div>
           <h4>What's included</h4>
           <ul id="sheet-inc"></ul>
-        </div>
-        <div class="notes">
-          <h4>Good to know</h4>
-          <div id="sheet-notes"></div>
         </div>
       </div>
       <div class="sheet-foot">
@@ -932,10 +927,7 @@ function fillSheet() {
   holder.replaceChildren(buildMedia(o));
   document.getElementById("sheet-name").textContent = o.name;
   document.getElementById("sheet-where").textContent = o.where + " · " + o.drive + " · " + o.meals;
-  const tags = document.getElementById("sheet-tags");
-  tags.replaceChildren(...o.tags.map(g => el("span", "tag" + (g.warn ? " warn" : ""), g.t)));
   document.getElementById("sheet-inc").replaceChildren(...o.includes.map(t => el("li", null, t)));
-  document.getElementById("sheet-notes").replaceChildren(...o.notes.map(t => el("p", null, t)));
   sheet.scrollTop = 0;
 }
 
