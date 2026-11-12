@@ -572,7 +572,7 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
       <div class="chill">
         <div class="chill-badge">Plan B</div>
         <div class="v-q">Can't make it on 5 Dec? No worries.</div>
-        <p>Would you like to join a <b>super chillax team bonding session</b> instead, using your allocated morale fund?</p>
+        <p>Would you like to join a <b>super chillax team bonding session</b> instead?</p>
         <div class="chill-date">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
           <span>Date TBC, expected around <b>27 November</b></span>
@@ -582,15 +582,36 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
         <a class="v-choice" id="v-chill-yes" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h13a3 3 0 0 1 0 6h-1"/><path d="M4 11v4a5 5 0 0 0 5 5h3a5 5 0 0 0 5-5v-4"/><path d="M8 3v3M12 3v3"/></svg>
           <strong>Yes, count me in</strong>
-          <span>Use my morale fund for the chillax session</span>
+          <span>Sign me up for the chillax session</span>
         </a>
-        <a class="v-choice" id="v-chill-no" target="_blank" rel="noopener">
+        <button class="v-choice" id="v-chill-no" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
-          <strong>No, I'll pass</strong>
-          <span>Skip both sessions this time</span>
-        </a>
+          <strong>No, not this one</strong>
+          <span>I'll skip the chillax session</span>
+        </button>
       </div>
       <p class="v-note">Place voting is only for people joining on 5 Dec. The form opens with your answers filled in; press <b>Submit</b> to send it.</p>
+    </div>
+
+    <div class="v-step" data-step="morale" hidden>
+      <div class="chill">
+        <div class="chill-badge">Morale fund</div>
+        <div class="v-q">Would you like to use your allocated morale fund?</div>
+        <p>You're skipping both sessions. Let us know what to do with your morale fund allocation.</p>
+      </div>
+      <div class="v-choices">
+        <a class="v-choice" id="v-fund-yes" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></svg>
+          <strong>Yes</strong>
+          <span>I'd like to use my allocation</span>
+        </a>
+        <a class="v-choice" id="v-fund-no" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+          <strong>No, sorry</strong>
+          <span>I'll give it a miss</span>
+        </a>
+      </div>
+      <p class="v-note">The form opens with your answers filled in. Press <b>Submit</b> to send it.</p>
     </div>
     <button class="btn ghost v-cancel" id="v-cancel" type="button">Back</button>
   </div>
@@ -604,9 +625,12 @@ const FORM_URL = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=bs6t_
 const FORM_Q = {
   attend:    ["r7870517eaff94ddf8f19a737d845a987", "Yes"],
   notAttending: "No",   // the form's exact wording for "not joining"
-  chillax: "",          // question id for the morale-fund / chillax question (from a pre-filled link)
+  chillax: "r40636ffb424c47f1873fd932d5b34b9a",   // join the chillax session instead?
   chillaxYes: "Yes",
   chillaxNo: "No",
+  fund: "r8832051e8fb84f03b0c841c673ff9569",      // use allocated morale fund? (asked after declining chillax)
+  fundYes: "Yes",
+  fundNo: "No, sorry",
   choice:    "rb810e0fb7422419781b4edd6d7486eb9",
   transport: "radde1f2f806a41559114bf3ce240897a",
   needTransport: "Nakkkk!!!",
@@ -1004,11 +1028,12 @@ function formUrl(o, needs) {
   if (needs !== undefined) u += "&" + FORM_Q.transport + "=" + q(needs ? FORM_Q.needTransport : FORM_Q.noTransport);
   return u;
 }
-function skipUrl(chill) {
+function skipUrl(chill, fund) {
   if (!FORM_URL) return "";
   const q = v => encodeURIComponent('"' + v + '"');
   let u = FORM_URL + "&" + FORM_Q.attend[0] + "=" + q(FORM_Q.notAttending);
-  if (FORM_Q.chillax && chill !== undefined) u += "&" + FORM_Q.chillax + "=" + q(chill ? FORM_Q.chillaxYes : FORM_Q.chillaxNo);
+  if (chill !== undefined) u += "&" + FORM_Q.chillax + "=" + q(chill ? FORM_Q.chillaxYes : FORM_Q.chillaxNo);
+  if (chill === false && fund !== undefined) u += "&" + FORM_Q.fund + "=" + q(fund ? FORM_Q.fundYes : FORM_Q.fundNo);
   return u;
 }
 function syncVote() {
@@ -1024,9 +1049,9 @@ let voteStep = "attend";
 function showStep(step) {
   voteStep = step;
   voteOv.querySelectorAll(".v-step").forEach(el => { el.hidden = el.dataset.step !== step; });
-  voteOv.querySelector(".v-head").hidden = step === "decline";
+  voteOv.querySelector(".v-head").hidden = step === "decline" || step === "morale";
   document.getElementById("v-cancel").textContent = step === "attend" ? "Cancel" : "Back";
-  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-chill-yes" }[step];
+  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-chill-yes", morale: "v-fund-yes" }[step];
   document.getElementById(first).focus();
 }
 function openVote() {
@@ -1037,7 +1062,8 @@ function openVote() {
   document.getElementById("v-yes").href = formUrl(o, true);
   document.getElementById("v-no").href = formUrl(o, false);
   document.getElementById("v-chill-yes").href = skipUrl(true);
-  document.getElementById("v-chill-no").href = skipUrl(false);
+  document.getElementById("v-fund-yes").href = skipUrl(false, true);
+  document.getElementById("v-fund-no").href = skipUrl(false, false);
   voteReturn = document.activeElement;
   voteOv.hidden = false;
   document.body.classList.add("locked");
@@ -1053,9 +1079,13 @@ function closeVote() {
 document.querySelectorAll(".vote-btn").forEach(b => b.addEventListener("click", openVote));
 document.getElementById("v-attend-yes").addEventListener("click", () => showStep("transport"));
 document.getElementById("v-attend-no").addEventListener("click", () => showStep("decline"));
-document.getElementById("v-cancel").addEventListener("click", () => { if (voteStep === "attend") closeVote(); else showStep("attend"); });
+document.getElementById("v-chill-no").addEventListener("click", () => showStep("morale"));
+document.getElementById("v-cancel").addEventListener("click", () => {
+  if (voteStep === "attend") closeVote();
+  else showStep(voteStep === "morale" ? "decline" : "attend");
+});
 voteOv.addEventListener("click", e => { if (e.target === voteOv) closeVote(); });
-["v-yes", "v-no", "v-chill-yes", "v-chill-no"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
+["v-yes", "v-no", "v-chill-yes", "v-fund-yes", "v-fund-no"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
 
 document.getElementById("deadline").textContent = VOTING_CLOSES ? "Voting closes " + VOTING_CLOSES : "";
 
