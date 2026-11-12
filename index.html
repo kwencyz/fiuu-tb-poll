@@ -347,7 +347,6 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
   justify-self: start; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   padding: 3px 9px; border-radius: 99px; background: rgba(255,186,120,.22); color: #ffd3a8;
 }
-[data-step="morale"] .v-q { font-size: 17px; line-height: 1.35; }
 .chill p { margin: 0; color: var(--muted); font-size: 14.5px; }
 .chill p b { color: var(--ink); }
 .chill-date { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
@@ -602,34 +601,15 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
           <strong>Yes, count me in</strong>
           <span>Sign me up for the chillax session</span>
         </a>
-        <button class="v-choice" id="v-chill-no" type="button">
+        <a class="v-choice" id="v-chill-no" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
           <strong>No, not this one</strong>
           <span>I'll skip the chillax session</span>
-        </button>
+        </a>
       </div>
       <p class="v-note">Place voting is only for people joining on 5 Dec. The form opens with your answers filled in; press <b>Submit</b> to send it.</p>
     </div>
 
-    <div class="v-step" data-step="morale" hidden>
-      <div class="chill">
-        <div class="chill-badge">Morale fund</div>
-        <div class="v-q">As you won't be joining either of the two team bonding dates, would you be agreeable to us utilising your allocated team bonding morale fund to support the team's activity?</div>
-      </div>
-      <div class="v-choices">
-        <a class="v-choice" id="v-fund-yes" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></svg>
-          <strong>Yes</strong>
-          <span>Happy for it to support the team</span>
-        </a>
-        <a class="v-choice" id="v-fund-no" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
-          <strong>No, sorry</strong>
-          <span>I'd prefer not to</span>
-        </a>
-      </div>
-      <p class="v-note">The form opens with your answers filled in. Press <b>Submit</b> to send it.</p>
-    </div>
     <button class="btn ghost v-cancel" id="v-cancel" type="button">Back</button>
   </div>
 </div>
@@ -645,9 +625,6 @@ const FORM_Q = {
   chillax: "r40636ffb424c47f1873fd932d5b34b9a",   // join the chillax session instead?
   chillaxYes: "Yes",
   chillaxNo: "No",
-  fund: "r8832051e8fb84f03b0c841c673ff9569",      // use allocated morale fund? (asked after declining chillax)
-  fundYes: "Yes",
-  fundNo: "No, sorry",
   choice:    "rb810e0fb7422419781b4edd6d7486eb9",
   transport: "radde1f2f806a41559114bf3ce240897a",
   needTransport: "Nakkkk!!!",
@@ -1054,12 +1031,11 @@ function formUrl(o, needs) {
   if (needs !== undefined) u += "&" + FORM_Q.transport + "=" + q(needs ? FORM_Q.needTransport : FORM_Q.noTransport);
   return u;
 }
-function skipUrl(chill, fund) {
+function skipUrl(chill) {
   if (!FORM_URL) return "";
   const q = v => encodeURIComponent('"' + v + '"');
   let u = FORM_URL + "&" + FORM_Q.attend[0] + "=" + q(FORM_Q.notAttending);
   if (chill !== undefined) u += "&" + FORM_Q.chillax + "=" + q(chill ? FORM_Q.chillaxYes : FORM_Q.chillaxNo);
-  if (chill === false && fund !== undefined) u += "&" + FORM_Q.fund + "=" + q(fund ? FORM_Q.fundYes : FORM_Q.fundNo);
   return u;
 }
 function syncVote() {
@@ -1075,9 +1051,9 @@ let voteStep = "attend";
 function showStep(step) {
   voteStep = step;
   voteOv.querySelectorAll(".v-step").forEach(el => { el.hidden = el.dataset.step !== step; });
-  voteOv.querySelector(".v-head").hidden = step === "decline" || step === "morale";
+  voteOv.querySelector(".v-head").hidden = step === "decline";
   document.getElementById("v-cancel").textContent = step === "attend" ? "Cancel" : "Back";
-  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-chill-yes", morale: "v-fund-yes" }[step];
+  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-chill-yes" }[step];
   document.getElementById(first).focus();
 }
 function openVote() {
@@ -1088,8 +1064,7 @@ function openVote() {
   document.getElementById("v-yes").href = formUrl(o, true);
   document.getElementById("v-no").href = formUrl(o, false);
   document.getElementById("v-chill-yes").href = skipUrl(true);
-  document.getElementById("v-fund-yes").href = skipUrl(false, true);
-  document.getElementById("v-fund-no").href = skipUrl(false, false);
+  document.getElementById("v-chill-no").href = skipUrl(false);
   voteReturn = document.activeElement;
   voteOv.hidden = false;
   document.body.classList.add("locked");
@@ -1105,13 +1080,12 @@ function closeVote() {
 document.querySelectorAll(".vote-btn").forEach(b => b.addEventListener("click", openVote));
 document.getElementById("v-attend-yes").addEventListener("click", () => showStep("transport"));
 document.getElementById("v-attend-no").addEventListener("click", () => showStep("decline"));
-document.getElementById("v-chill-no").addEventListener("click", () => showStep("morale"));
 document.getElementById("v-cancel").addEventListener("click", () => {
   if (voteStep === "attend") closeVote();
-  else showStep(voteStep === "morale" ? "decline" : "attend");
+  else showStep("attend");
 });
 voteOv.addEventListener("click", e => { if (e.target === voteOv) closeVote(); });
-["v-yes", "v-no", "v-chill-yes", "v-fund-yes", "v-fund-no"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
+["v-yes", "v-no", "v-chill-yes", "v-chill-no"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
 
 document.getElementById("deadline").textContent = VOTING_CLOSES ? "Voting closes " + VOTING_CLOSES : "";
 
