@@ -347,6 +347,7 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
   justify-self: start; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   padding: 3px 9px; border-radius: 99px; background: rgba(255,186,120,.22); color: #ffd3a8;
 }
+[data-step="morale"] .v-q { font-size: 17px; line-height: 1.35; }
 .chill p { margin: 0; color: var(--muted); font-size: 14.5px; }
 .chill p b { color: var(--ink); }
 .chill-date { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
@@ -613,19 +614,18 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
     <div class="v-step" data-step="morale" hidden>
       <div class="chill">
         <div class="chill-badge">Morale fund</div>
-        <div class="v-q">Would you like to use your allocated morale fund?</div>
-        <p>You're skipping both sessions. Let us know what to do with your morale fund allocation.</p>
+        <div class="v-q">As you won't be joining either of the two team bonding dates, would you be agreeable to us utilising your allocated team bonding morale fund to support the team's activity?</div>
       </div>
       <div class="v-choices">
         <a class="v-choice" id="v-fund-yes" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/></svg>
           <strong>Yes</strong>
-          <span>I'd like to use my allocation</span>
+          <span>Happy for it to support the team</span>
         </a>
         <a class="v-choice" id="v-fund-no" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
           <strong>No, sorry</strong>
-          <span>I'll give it a miss</span>
+          <span>I'd prefer not to</span>
         </a>
       </div>
       <p class="v-note">The form opens with your answers filled in. Press <b>Submit</b> to send it.</p>
