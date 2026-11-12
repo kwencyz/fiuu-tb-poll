@@ -323,10 +323,20 @@ body.intro-on .page, body.intro-on .music { opacity: 0; transform: translateY(14
 .v-cancel { justify-self: start; }
 .v-step { display: grid; gap: 14px; }
 button.v-choice { font: inherit; text-align: left; cursor: pointer; }
-.v-sorry { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 16px; background: rgba(240,176,114,.1); border: 1px solid rgba(240,176,114,.35); }
-.v-sorry svg { width: 30px; height: 30px; flex: none; color: var(--warn); }
-.v-sorry p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
-.v-decline { justify-self: stretch; }
+.chill {
+  display: grid; gap: 10px; padding: 18px; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255,186,120,.16), rgba(60,194,173,.14));
+  border: 1px solid rgba(255,255,255,.16);
+}
+.chill-badge {
+  justify-self: start; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 99px; background: rgba(255,186,120,.22); color: #ffd3a8;
+}
+.chill p { margin: 0; color: var(--muted); font-size: 14.5px; }
+.chill p b { color: var(--ink); }
+.chill-date { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.chill-date svg { width: 18px; height: 18px; flex: none; color: #ffd3a8; }
+.chill-date b { color: var(--ink); }
 .btn:disabled { background: transparent; color: var(--muted); border: 1px dashed var(--glass-line); cursor: default; }
 
 @media (max-width: 560px) {
@@ -559,15 +569,28 @@ button.v-choice { font: inherit; text-align: left; cursor: pointer; }
     </div>
 
     <div class="v-step" data-step="decline" hidden>
-      <div class="v-sorry">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M10 14l4 4M14 14l-4 4"/></svg>
-        <div>
-          <div class="v-q">Sorry, you can't vote for a place</div>
-          <p>Voting is only for people joining on 5 Dec, since they're the ones going. We'll miss you! Please still let the organisers know you can't make it, so they can plan headcount and transport.</p>
+      <div class="chill">
+        <div class="chill-badge">Plan B</div>
+        <div class="v-q">Can't make it on 5 Dec? No worries.</div>
+        <p>Would you like to join a <b>super chillax team bonding session</b> instead, using your allocated morale fund?</p>
+        <div class="chill-date">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          <span>Date TBC, expected around <b>27 November</b></span>
         </div>
       </div>
-      <a class="btn primary v-decline" id="v-decline" target="_blank" rel="noopener">Tell the organisers I can't join ↗</a>
-      <p class="v-note">The form opens with "not joining" filled in. Press <b>Submit</b> to send it.</p>
+      <div class="v-choices">
+        <a class="v-choice" id="v-chill-yes" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h13a3 3 0 0 1 0 6h-1"/><path d="M4 11v4a5 5 0 0 0 5 5h3a5 5 0 0 0 5-5v-4"/><path d="M8 3v3M12 3v3"/></svg>
+          <strong>Yes, count me in</strong>
+          <span>Use my morale fund for the chillax session</span>
+        </a>
+        <a class="v-choice" id="v-chill-no" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+          <strong>No, I'll pass</strong>
+          <span>Skip both sessions this time</span>
+        </a>
+      </div>
+      <p class="v-note">Place voting is only for people joining on 5 Dec. The form opens with your answers filled in; press <b>Submit</b> to send it.</p>
     </div>
     <button class="btn ghost v-cancel" id="v-cancel" type="button">Back</button>
   </div>
@@ -581,6 +604,9 @@ const FORM_URL = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=bs6t_
 const FORM_Q = {
   attend:    ["r7870517eaff94ddf8f19a737d845a987", "Yes"],
   notAttending: "No",   // the form's exact wording for "not joining"
+  chillax: "",          // question id for the morale-fund / chillax question (from a pre-filled link)
+  chillaxYes: "Yes",
+  chillaxNo: "No",
   choice:    "rb810e0fb7422419781b4edd6d7486eb9",
   transport: "radde1f2f806a41559114bf3ce240897a",
   needTransport: "Nakkkk!!!",
@@ -978,9 +1004,12 @@ function formUrl(o, needs) {
   if (needs !== undefined) u += "&" + FORM_Q.transport + "=" + q(needs ? FORM_Q.needTransport : FORM_Q.noTransport);
   return u;
 }
-function skipUrl() {
+function skipUrl(chill) {
   if (!FORM_URL) return "";
-  return FORM_URL + "&" + FORM_Q.attend[0] + "=" + encodeURIComponent('"' + FORM_Q.notAttending + '"');
+  const q = v => encodeURIComponent('"' + v + '"');
+  let u = FORM_URL + "&" + FORM_Q.attend[0] + "=" + q(FORM_Q.notAttending);
+  if (FORM_Q.chillax && chill !== undefined) u += "&" + FORM_Q.chillax + "=" + q(chill ? FORM_Q.chillaxYes : FORM_Q.chillaxNo);
+  return u;
 }
 function syncVote() {
   document.querySelectorAll(".vote-btn").forEach(b => {
@@ -995,8 +1024,9 @@ let voteStep = "attend";
 function showStep(step) {
   voteStep = step;
   voteOv.querySelectorAll(".v-step").forEach(el => { el.hidden = el.dataset.step !== step; });
+  voteOv.querySelector(".v-head").hidden = step === "decline";
   document.getElementById("v-cancel").textContent = step === "attend" ? "Cancel" : "Back";
-  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-decline" }[step];
+  const first = { attend: "v-attend-yes", transport: "v-yes", decline: "v-chill-yes" }[step];
   document.getElementById(first).focus();
 }
 function openVote() {
@@ -1006,7 +1036,8 @@ function openVote() {
   document.getElementById("v-title").textContent = o.name;
   document.getElementById("v-yes").href = formUrl(o, true);
   document.getElementById("v-no").href = formUrl(o, false);
-  document.getElementById("v-decline").href = skipUrl();
+  document.getElementById("v-chill-yes").href = skipUrl(true);
+  document.getElementById("v-chill-no").href = skipUrl(false);
   voteReturn = document.activeElement;
   voteOv.hidden = false;
   document.body.classList.add("locked");
@@ -1024,7 +1055,7 @@ document.getElementById("v-attend-yes").addEventListener("click", () => showStep
 document.getElementById("v-attend-no").addEventListener("click", () => showStep("decline"));
 document.getElementById("v-cancel").addEventListener("click", () => { if (voteStep === "attend") closeVote(); else showStep("attend"); });
 voteOv.addEventListener("click", e => { if (e.target === voteOv) closeVote(); });
-["v-yes", "v-no", "v-decline"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
+["v-yes", "v-no", "v-chill-yes", "v-chill-no"].forEach(id => document.getElementById(id).addEventListener("click", () => setTimeout(closeVote, 300)));
 
 document.getElementById("deadline").textContent = VOTING_CLOSES ? "Voting closes " + VOTING_CLOSES : "";
 
